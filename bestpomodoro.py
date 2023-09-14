@@ -3,6 +3,8 @@ import math
 import subprocess
 import os
 from tkinter import ttk
+import atexit
+import sys
 
 
 def add_task():
@@ -23,7 +25,7 @@ gong_wav = os.path.join(os.path.dirname(__file__), "121800__boss-music__gong.wav
 yoga_wav = os.path.join(os.path.dirname(__file__), "493524__danbl__pulse-breath.wav")
 
 
-def make_buzz():
+def gong_noise():
     subprocess.Popen(['afplay', "-v", ".1", gong_wav])
 
 
@@ -42,12 +44,12 @@ RED = "#e7305b"
 GREEN = "#9bdeac"
 YELLOW = "#f7f5dd"
 FONT_NAME = "Courier"
-WORK_MIN = 25
-SHORT_BREAK_MIN = 3
-LONG_BREAK_MIN = 10
-# WORK_MIN = .05
-# SHORT_BREAK_MIN = .05
-# LONG_BREAK_MIN = .05
+# WORK_MIN = 25
+# SHORT_BREAK_MIN = 3
+# LONG_BREAK_MIN = 5
+WORK_MIN = .05
+SHORT_BREAK_MIN = .05
+LONG_BREAK_MIN = .05
 reps = 0
 timer = None
 push_ups = 0
@@ -111,7 +113,7 @@ def start_timer():
     work_sec = WORK_MIN * 60
     short_break_sec = SHORT_BREAK_MIN * 60
     long_break_sec = LONG_BREAK_MIN * 60
-# TODO make it so there arent overlaps in breaks and yoga time because of remainders
+    # TODO make it so there arent overlaps in breaks and yoga time because of remainders
     if reps % 8 == 0:
         count_down(long_break_sec)
         timer_label.config(text="Long Break. Do 50 Pushups", fg=RED)
@@ -159,7 +161,7 @@ def count_down(seconds):
         global timer
         timer = window.after(1000, count_down, seconds - 1)
     else:
-        make_buzz()
+        gong_noise()
         start_timer()
         marks = ""
         work_sessions = math.floor(reps / 2)
@@ -239,4 +241,15 @@ remove_button.grid(column=1, row=11)
 progress_bar = ttk.Progressbar(window, maximum=8, length=200, mode="determinate")
 progress_bar.grid(column=1, row=15, pady=10)
 
+
+def exit_screen():
+    # Terminate the yoga_sound subprocess before exiting
+    if yoga_process is not None:
+        yoga_process.terminate()
+    # Exit the screen
+    sys.exit()
+
+
+# Register the exit_screen function to be called when the program exits
+atexit.register(exit_screen)
 window.mainloop()
